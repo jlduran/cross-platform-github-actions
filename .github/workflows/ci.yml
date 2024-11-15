@@ -21,6 +21,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: freebsd/freebsd-src
+          path: src
 
       - name: Store parameters
         run: |
@@ -32,9 +33,12 @@ jobs:
           operating_system: freebsd
           version: '14.1'
           run: |
-            cd $GITHUB_WORKSPACE/tools/tools/nanobsd
+            cd $GITHUB_WORKSPACE/src/tools/tools/nanobsd
             if [ -z ${{ env.NANO_CONFIG }} ]; then
-              sh nanobsd.sh
+              touch config.nano
             else
-              sh nanobsd.sh -c ${{ env.NANO_CONFIG }}
+              fetch -o config.nano "${{ env.NANO_CONFIG }}"
             fi
+            echo "NANO_OBJ=$GITHUB_WORKSPACE/obj" >> config.nano
+            echo "NANO_SRC=$GITHUB_WORKSPACE/src" >> config.nano
+            sh nanobsd.sh -c config.nano
