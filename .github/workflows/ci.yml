@@ -1,4 +1,4 @@
-name: CI
+name: NanoBSD
 
 on:
   repository_dispatch:
@@ -8,7 +8,6 @@ on:
   workflow_dispatch:
     inputs:
       NANO_CONFIG:
-        # XXX not implemented
         description: Link to a NanoBSD config file
         required: false
         default: ""
@@ -23,6 +22,10 @@ jobs:
         with:
           repository: freebsd/freebsd-src
 
+      - name: Store parameters
+        run: |
+          echo "NANO_CONFIG=${{ github.event.inputs.NANO_CONFIG || github.event.client_payload.nano_config }}" >> $GITHUB_ENV
+
       - name: Build NanoBSD
         uses: cross-platform-actions/action@v0.25.0
         with:
@@ -30,4 +33,8 @@ jobs:
           version: '14.1'
           run: |
             cd $GITHUB_WORKSPACE/tools/tools/nanobsd
-            sh nanobsd.sh
+            if [ -z ${{ env.NANO_CONFIG }} ]; then
+              sh nanobsd.sh
+            else
+              sh nanobsd.sh -c ${{ env.NANO_CONFIG }}
+            fi
