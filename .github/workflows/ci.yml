@@ -1,22 +1,33 @@
 name: CI
 
-on: [push]
+on:
+  repository_dispatch:
+    types:
+      - build
+
+  workflow_dispatch:
+    inputs:
+      NANO_CONFIG:
+        # XXX not implemented
+        description: Link to a NanoBSD config file
+        required: false
+        default: ""
 
 jobs:
-  test:
+  nanobsd:
+    name: Build a NanoBSD disk image
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout FreeBSD
+        uses: actions/checkout@v4
+        with:
+          repository: freebsd/freebsd-src
 
-      - name: Test
+      - name: Build NanoBSD
         uses: cross-platform-actions/action@v0.25.0
         with:
           operating_system: freebsd
           version: '14.1'
           run: |
-            uname -a
-            echo $SHELL
-            pwd
-            ls -lah
-            whoami
-            env | sort
+            cd $GITHUB_WORKSPACE/tools/tools/nanobsd
+            sh nanobsd.sh
